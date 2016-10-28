@@ -5,8 +5,10 @@ word3 = None
 frequencies = dict()
 for line in testFile:
     for word in line.split():
+        #convert to lower case
         word = word.lower()
-        word = filter(lambda ch: ch not in ",.()\'\"", word)
+        #remove punctuation
+        word = filter(lambda ch: ch not in ",.()\'\"!?[]{}_-+=/<>|\\~`@#$%^&*;:", word)
         if word1 == None:
             word1 = word
         elif word2 == None:
@@ -19,7 +21,6 @@ for line in testFile:
             word3 = word
         if word3 != None:
             tup = (word1, word2, word3)
-            #print (word1 + " " + word2 + " " + word3)
             if tup not in frequencies:
                 frequencies[tup] = 1
             else:
