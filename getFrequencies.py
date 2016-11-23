@@ -1,12 +1,6 @@
-from Tkinter import Label
-from Tkinter import Tk
-from Tkinter import Entry
-from Tkinter import Button
-from Tkinter import StringVar
-from Tkinter import W
+from Tkinter import Label, Tk, Entry, StringVar, IntVar, OptionMenu
 import collections
 
-nGramSize = 4
 def generateNGram(n, fileName, nGram = {}):
 	testFile = file(fileName, "r")
 	wordDeque = collections.deque(maxlen=n-1)
@@ -17,7 +11,7 @@ def generateNGram(n, fileName, nGram = {}):
 			#remove punctuation
 			word = filter(lambda ch: ch not in ",.()\'\"!?[]{}_-+=/<>|\\~`@#$%^&*;:", word)
 
-			if len(wordDeque) == (n-1):
+			if len(wordDeque) == n - 1:
 				tup = tuple(wordDeque)
 				if not nGram.has_key(tup):
 					nGram[tup] = {}
@@ -31,50 +25,77 @@ def generateNGram(n, fileName, nGram = {}):
 	return nGram
 
 def getBestNMatches(nGram, n, args):
-	tup = tuple(args)
-	if nGram.has_key(tup):
-		words = nGram[tup]
-		sortedWords = sorted(words, words.get)
-		return sortedWords[0:n]
-	return None
+    tup = tuple(args[-size.get():])
+    if nGram.has_key(tup):
+        words = nGram[tup]
+        sortedWords = sorted(words, words.get)
+        return sortedWords[0:n]
+    return None
 
 def matchEntry():
     entry = matchThis.get().split()
-    if len(entry) < nGramSize - 1:
-        result.set("")
-        return
-
-    words =  getBestNMatches(nGram, 6, entry[-(nGramSize-1):])
+    words = getBestNMatches(nGram, 6, entry)
     out = ""
-    if(words == None):
-        result.set("")
-        return
-    for word in words:
-        out += word
-        out += ", "
-    out = out[:-2]
+    if words != None:
+        for word in words:
+            out += word
+            out += ", "
+        out = out[:-2]
     result.set(out)
 
 def onKeyTyped(event):
-	matchEntry()
+    matchEntry()
 
-nGram = generateNGram(4, "sampleText.txt")
+def makeNewNGramList(*args):
+    global nGram
+    nGram = None
+    nGram = generateNGram(size.get() + 1, fileName.get())
 
-ui = Tk()
 
-Label(ui, text = "Enter text:").grid(row = 0)
+nGram = None
 
-matchThis = Entry(ui)
+root = Tk()
+root.wm_title("Text Predictor")
+
+Label(root, text = "Enter text:").grid(row = 0)
+
+matchThis = Entry(root)
 matchThis.bind("<KeyRelease>", onKeyTyped)
 matchThis.grid(row = 0, column = 1)
 
-Button(ui, text = "Submit", command = matchEntry).grid(row = 3, column = 0, sticky = W, pady = 4)
-
 result = StringVar()
 result.set("")
-Label(ui, textvariable = result).grid(row = 1)
+Label(root, textvariable = result).grid(row = 1)
 
+sizeOptions = [
+	1,
+	2,
+	3,
+	4,
+	5
+]
+
+size = IntVar()
+size.set(sizeOptions[0])
+size.trace("w", makeNewNGramList)
+
+fileNameOptions = [
+	"sampleText.txt",
+	"sampleText2.txt"
+]
+
+fileName = StringVar()
+fileName.set(fileNameOptions[0])
+fileName.trace("w", makeNewNGramList)
+
+makeNewNGramList()
+
+sizeMenu = apply(OptionMenu, (root, size) + tuple(sizeOptions))
+sizeMenu.grid(row = 2, column = 0)
+
+fileMenu = apply (OptionMenu, (root, fileName) + tuple(fileNameOptions))
+fileMenu.grid(row = 2, column = 1)
 
 #print getBestNMatches(nGram, 6, "to", "the")
 
-ui.mainloop()
+root.mainloop()
