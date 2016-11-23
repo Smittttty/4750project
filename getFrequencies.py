@@ -6,6 +6,7 @@ from Tkinter import OptionMenu
 from Tkinter import StringVar
 from Tkinter import Tk
 import string
+import os
 
 def generate_ngram(n, file_name, ngram=None):
     """Create an n-gram frequency dictionary based on the data in the file.
@@ -96,7 +97,7 @@ def make_new_n_gram_dict(*args):
     """
     global nGram
     nGram = {}
-    nGram = generate_ngram(size.get() + 1, fileName.get())
+    nGram = generate_ngram(size.get() + 1, textDirectory + fileName.get())
 
 
 # start with an empty n-gram dictionary
@@ -135,11 +136,11 @@ size.set(sizeOptions[0] + 1)
 # set a trace on this variable that calls make_new_n_gram_dict on any change
 size.trace("w", make_new_n_gram_dict)
 
-# the choice of domain TODO: make this scan the directory for files instead of being hard-coded
-fileNameOptions = [
-    "sampleText.txt",
-    "sampleText2.txt"
-]
+#directory which contain texts
+textDirectory = "text_sources/"
+
+#get files in diretory for options
+fileNameOptions = os.listdir(textDirectory);
 
 # set up the variable that holds the domain file, and set its default value to the first option in fileNameOptions
 fileName = StringVar()
