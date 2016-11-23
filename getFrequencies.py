@@ -5,7 +5,7 @@ from Tkinter import Label
 from Tkinter import OptionMenu
 from Tkinter import StringVar
 from Tkinter import Tk
-
+import string
 
 def generate_ngram(n, file_name, ngram=None):
     """Create an n-gram frequency dictionary based on the data in the file.
@@ -28,18 +28,18 @@ def generate_ngram(n, file_name, ngram=None):
             # convert to lower case
             word = word.lower()
             # remove punctuation and non ASCII characters
-            import string
             printable = set(string.printable)
             word = filter(lambda ch: ch not in ",.()'\"!?[]{}_-+=/<>|\\~`@#$%^&*;:" and ch in printable, word)
             # check if n-1 words are in the deque
+           
             if len(word_deque) == n - 1:
                 # if so, check if the deque is a key in the dictionary, if not create a dictionary as its value
                 tup = tuple(word_deque)
                 if tup not in ngram:
                     ngram[tup] = {}
                 # then check if the inner dictionary has the next word as a key, if not, initialize it
-                if not word not in ngram[tup]:
-                    ngram[tup][word] = 0
+                if word not in ngram[tup]:
+                    ngram[tup][word] = 1
                 # increase the count and pop out the left-most (oldest) word
                 ngram[tup][word] += 1
                 word_deque.popleft()
@@ -131,7 +131,7 @@ sizeOptions = [
 
 # set up the int variable that holds the size of n-1, and set its default value to the first option in sizeOptions
 size = IntVar()
-size.set(sizeOptions[0])
+size.set(sizeOptions[0] + 1)
 # set a trace on this variable that calls make_new_n_gram_dict on any change
 size.trace("w", make_new_n_gram_dict)
 
@@ -143,7 +143,7 @@ fileNameOptions = [
 
 # set up the variable that holds the domain file, and set its default value to the first option in fileNameOptions
 fileName = StringVar()
-fileName.set(fileNameOptions[0])
+fileName.set(fileNameOptions[1])
 
 # set a trace on this variable that calls make_new_n_gram_dict on any change
 fileName.trace("w", make_new_n_gram_dict)
