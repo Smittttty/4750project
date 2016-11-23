@@ -1,4 +1,5 @@
 import collections
+from Tkinter import END
 from Tkinter import Entry
 from Tkinter import IntVar
 from Tkinter import Label
@@ -70,22 +71,23 @@ def get_best_m_matches(n_gram, m, inputted_words):
 
 # noinspection PyUnusedLocal
 def match_entry(*args):
-    """Sets the result label to the result of finding the best 6 matches based on the matchThis input box.
+    """Sets the result labels to the result of finding the best 6 matches based on the matchThis input box.
 
     :param args: where the function was triggered (not used)
     :return: nothing
     """
-    # split the input into a list and find the best 6 entries
+    #clear the result labels first
+    for i in range(len(result)):
+        result[i].set("")
+    # split the input into a list and find the best 3 entries
     entry = matchThis.get().split()
-    words = get_best_m_matches(nGram, 6, entry)
-    out = ""
+    words = get_best_m_matches(nGram, 3, entry)
     # if a non-None result is return, update the label to be those words
     if words is not None:
+        i = 0
         for word in words:
-            out += word
-            out += ", "
-        out = out[:-2]
-    result.set(out)
+            result[i].set(word)
+            i += 1
 
 
 # noinspection PyUnusedLocal
@@ -100,6 +102,15 @@ def make_new_n_gram_dict(*args):
     nGram = generate_ngram(size.get() + 1, textDirectory + fileName.get())
 
 
+def insert_text(i):
+    """Inserts the chosen text into the entry box
+
+    :param i: the index of the result to be added
+    :return: nothing
+    """
+    matchThis.insert(END, " " + result[i].get())
+
+
 # start with an empty n-gram dictionary
 nGram = {}
 
@@ -110,16 +121,23 @@ root.wm_title("Text Predictor")
 # set up a label prompting the user to enter text
 Label(root, text="Enter text:").grid(row=0)
 
-# set up the entry box for the user to enter text
-matchThis = Entry(root)
-# whenever a key is released in the entry box, call match_entry
-matchThis.bind("<KeyRelease>", match_entry)
+#set up as string variable to call the match entry function whenever it is changed
+enteredText = StringVar()
+enteredText.set("")
+enteredText.trace("w", match_entry)
+
+# set up the entry box for the user to enter text (using the enteredText string variable)
+matchThis = Entry(root, textvariable=enteredText)
 matchThis.grid(row=0, column=1)
 
 # set up the result string variable and the label that holds it
-result = StringVar()
-result.set("")
-Label(root, textvariable=result).grid(row=1)
+result = []
+for i in range(3):
+    result.append(StringVar())
+    result[i].set("test")
+    label = Label(root, textvariable=result[i])
+    label.grid(row=1, column=i)
+    label.bind("<Button-1>", lambda e, i=i:insert_text(i))
 
 # the n-gram size options (choice of n-1) this allows you to choose how many words the dict is keyed on
 sizeOptions = [
@@ -140,7 +158,7 @@ size.trace("w", make_new_n_gram_dict)
 textDirectory = "text_sources/"
 
 #get files in diretory for options
-fileNameOptions = os.listdir(textDirectory);
+fileNameOptions = os.listdir(textDirectory)
 
 # set up the variable that holds the domain file, and set its default value to the first option in fileNameOptions
 fileName = StringVar()
