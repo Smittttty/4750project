@@ -50,6 +50,48 @@ def generate_ngram(n, file_name, ngram=None):
     return ngram
 
 
+def generate_ngram_string(n, input_str, ngram=None):
+    """Create an n-gram frequency dictionary based on the data in the file.
+
+    :param n: the size of the desired n-grams
+    :param input_str: the string we want to analyze
+    :param ngram: the dictionary to be appended to (defaults to {})
+    :return: a dictionary that encodes frequencies of different n-grams
+    """
+    # open the file
+    if ngram is None:
+        ngram = {}
+
+    # start a deque to store the words
+    word_deque = collections.deque(maxlen=n - 1)
+    # run through each line in input_str
+    for line in input_str.split("\n"):
+        # and each word in the line
+        for word in line.split():
+            # convert to lower case
+            word = word.lower()
+            # remove punctuation and non ASCII characters
+            printable = set(string.printable)
+            word = filter(lambda ch: ch not in ",.()'\"!?[]{}_-+=/<>|\\~`@#$%^&*;:" and ch in printable, word)
+            # check if n-1 words are in the deque
+
+            if len(word_deque) == n - 1:
+                # if so, check if the deque is a key in the dictionary, if not create a dictionary as its value
+                tup = tuple(word_deque)
+                if tup not in ngram:
+                    ngram[tup] = {}
+                # then check if the inner dictionary has the next word as a key, if not, initialize it
+                if word not in ngram[tup]:
+                    ngram[tup][word] = 1
+                # increase the count and pop out the left-most (oldest) word
+                ngram[tup][word] += 1
+                word_deque.popleft()
+            # add the new word to the deque
+            word_deque.append(word)
+    # return the n-gram dictionary
+    return ngram
+
+
 def get_best_m_matches(n_gram, m, inputted_words):
     """Finds the most frequent m matches in a given n-gram dictionary based on the argument.
 

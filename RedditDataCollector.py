@@ -1,16 +1,36 @@
 import sys
 sys.path.insert(0, 'praw/')
-sys.path.insert(0, 'pickle/')
+
 import praw
+from getFrequencies import generate_ngram_string
 import pickle
+import threading
+import thread
+import time
 
-p = praw.Reddit(user_agent='NLP Comment Scraper by /u/Smitttttty', client_id='1zFadZX5W60eXw', client_secret='TVSU9vn1wCzZKeum9qTCFUqpJB0')
+nGram = [{} for i in range(0, 7)]
+alive = True
 
-subreddit = p.subreddit("funny+news+AskReddit")
+for i in range(2, 7):
+    nGram[i] = {}
 
-#i will code something with this tomorrow
-f = open("test.txt", "w");
-for comment in subreddit.stream.comments():
-    if(len(comment.body) > 0):
-        f.write(comment.body + "\r\n")
-f.close();
+lock = threading.Lock()
+
+def reddit_farm(reddits, nGram_Array):
+    p = praw.Reddit(user_agent='NLP Comment Scraper by /u/Smitttttty', client_id='1zFadZX5W60eXw',
+                    client_secret='TVSU9vn1wCzZKeum9qTCFUqpJB0')
+
+    subreddit = p.subreddit(reddits)
+
+    lock.acquire()
+    for comment in subreddit.stream.comments():
+        for i in range(2, 7):
+            generate_ngram_string(i, comment.body, nGram[i]);
+            pickle.dump(nGram[i], open(reddits.replace("+", "") + "_" + str(i) + ".ng", "wb"))
+        print comment.body
+    lock.release()
+
+thread.start_new(reddit_farm, ("funny+askreddit", nGram))
+
+while True:
+    time.sleep(1000)
