@@ -6,6 +6,7 @@ from Tkinter import StringVar
 from Tkinter import W
 import collections
 
+nGramSize = 4
 def generateNGram(n, fileName, nGram = {}):
 	testFile = file(fileName, "r")
 	wordDeque = collections.deque(maxlen=n-1)
@@ -16,7 +17,7 @@ def generateNGram(n, fileName, nGram = {}):
 			#remove punctuation
 			word = filter(lambda ch: ch not in ",.()\'\"!?[]{}_-+=/<>|\\~`@#$%^&*;:", word)
 
-			if len(wordDeque) == 2:
+			if len(wordDeque) == (n-1):
 				tup = tuple(wordDeque)
 				if not nGram.has_key(tup):
 					nGram[tup] = {}
@@ -39,22 +40,32 @@ def getBestNMatches(nGram, n, args):
 
 def matchEntry():
     entry = matchThis.get().split()
-    words =  getBestNMatches(nGram, 6, entry)
+    if len(entry) < nGramSize - 1:
+        result.set("")
+        return
+
+    words =  getBestNMatches(nGram, 6, entry[-(nGramSize-1):])
     out = ""
+    if(words == None):
+        result.set("")
+        return
     for word in words:
         out += word
         out += ", "
     out = out[:-2]
     result.set(out)
 
+def onKeyTyped(event):
+	matchEntry()
 
-nGram = generateNGram(3, "sampleText.txt")
+nGram = generateNGram(4, "sampleText.txt")
 
 ui = Tk()
 
 Label(ui, text = "Enter text:").grid(row = 0)
 
 matchThis = Entry(ui)
+matchThis.bind("<KeyRelease>", onKeyTyped)
 matchThis.grid(row = 0, column = 1)
 
 Button(ui, text = "Submit", command = matchEntry).grid(row = 3, column = 0, sticky = W, pady = 4)
