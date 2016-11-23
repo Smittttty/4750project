@@ -1,101 +1,163 @@
-from Tkinter import Label, Tk, Entry, StringVar, IntVar, OptionMenu
 import collections
+from Tkinter import Entry
+from Tkinter import IntVar
+from Tkinter import Label
+from Tkinter import OptionMenu
+from Tkinter import StringVar
+from Tkinter import Tk
 
-def generateNGram(n, fileName, nGram = {}):
-	testFile = file(fileName, "r")
-	wordDeque = collections.deque(maxlen=n-1)
-	for line in testFile:
-		for word in line.split():
-			#convert to lower case
-			word = word.lower()
-			#remove punctuation
-			word = filter(lambda ch: ch not in ",.()\'\"!?[]{}_-+=/<>|\\~`@#$%^&*;:", word)
 
-			if len(wordDeque) == n - 1:
-				tup = tuple(wordDeque)
-				if not nGram.has_key(tup):
-					nGram[tup] = {}
-				if not nGram[tup].has_key(word):
-					nGram[tup][word] = 0
-				nGram[tup][word] += 1
-				wordDeque.popleft()
+def generate_ngram(n, file_name, ngram=None):
+    """Create an n-gram frequency dictionary based on the data in the file.
 
-			wordDeque.append(word)
+    :param n: the size of the desired n-grams
+    :param file_name: the file of the text file to be analyzed for n-gram frequency
+    :param ngram: the dictionary to be appended to (defaults to {})
+    :return: a dictionary that encodes frequencies of different n-grams
+    """
+    # open the file
+    if ngram is None:
+        ngram = {}
+    test_file = file(file_name, "r")
+    # start a deque to store the words
+    word_deque = collections.deque(maxlen=n - 1)
+    # run through each line in the file
+    for line in test_file:
+        # and each word in the line
+        for word in line.split():
+            # convert to lower case
+            word = word.lower()
+            # remove punctuation and non ASCII characters
+            import string
+            printable = set(string.printable)
+            word = filter(lambda ch: ch not in ",.()'\"!?[]{}_-+=/<>|\\~`@#$%^&*;:" and ch in printable, word)
+            # check if n-1 words are in the deque
+            if len(word_deque) == n - 1:
+                # if so, check if the deque is a key in the dictionary, if not create a dictionary as its value
+                tup = tuple(word_deque)
+                if tup not in ngram:
+                    ngram[tup] = {}
+                # then check if the inner dictionary has the next word as a key, if not, initialize it
+                if not word not in ngram[tup]:
+                    ngram[tup][word] = 0
+                # increase the count and pop out the left-most (oldest) word
+                ngram[tup][word] += 1
+                word_deque.popleft()
+            # add the new word to the deque
+            word_deque.append(word)
+    # return the n-gram dictionary
+    return ngram
 
-	return nGram
 
-def getBestNMatches(nGram, n, args):
-    tup = tuple(args[-size.get():])
-    if nGram.has_key(tup):
-        words = nGram[tup]
-        sortedWords = sorted(words, words.get)
-        return sortedWords[0:n]
+def get_best_m_matches(n_gram, m, inputted_words):
+    """Finds the most frequent m matches in a given n-gram dictionary based on the argument.
+
+    :param n_gram: the n-gram dictionary to be checked against
+    :param m: the number of matches required
+    :param inputted_words: the words to be compared against the n-gram dictionary
+    :return: a list of the m most common words after the given input (returns None if no matches are found)
+    """
+    # only consider the last $size words
+    tup = tuple(inputted_words[-size.get():])
+    # if those words are in the dictionary, get the best m of them and return them as a list
+    if tup in n_gram:
+        words = n_gram[tup]
+        sorted_words = sorted(words, words.get)
+        return sorted_words[0:m]
     return None
 
-def matchEntry():
+
+# noinspection PyUnusedLocal
+def match_entry(*args):
+    """Sets the result label to the result of finding the best 6 matches based on the matchThis input box.
+
+    :param args: where the function was triggered (not used)
+    :return: nothing
+    """
+    # split the input into a list and find the best 6 entries
     entry = matchThis.get().split()
-    words = getBestNMatches(nGram, 6, entry)
+    words = get_best_m_matches(nGram, 6, entry)
     out = ""
-    if words != None:
+    # if a non-None result is return, update the label to be those words
+    if words is not None:
         for word in words:
             out += word
             out += ", "
         out = out[:-2]
     result.set(out)
 
-def onKeyTyped(event):
-    matchEntry()
 
-def makeNewNGramList(*args):
+# noinspection PyUnusedLocal
+def make_new_n_gram_dict(*args):
+    """Makes a new n-gram dictionary when a new option in the option menus is selected
+
+    :param args: from where the function was triggered (not used)
+    :return: nothing
+    """
     global nGram
-    nGram = None
-    nGram = generateNGram(size.get() + 1, fileName.get())
+    nGram = {}
+    nGram = generate_ngram(size.get() + 1, fileName.get())
 
 
-nGram = None
+# start with an empty n-gram dictionary
+nGram = {}
 
+# set up the ui frame and give it a title
 root = Tk()
 root.wm_title("Text Predictor")
 
-Label(root, text = "Enter text:").grid(row = 0)
+# set up a label prompting the user to enter text
+Label(root, text="Enter text:").grid(row=0)
 
+# set up the entry box for the user to enter text
 matchThis = Entry(root)
-matchThis.bind("<KeyRelease>", onKeyTyped)
-matchThis.grid(row = 0, column = 1)
+# whenever a key is released in the entry box, call match_entry
+matchThis.bind("<KeyRelease>", match_entry)
+matchThis.grid(row=0, column=1)
 
+# set up the result string variable and the label that holds it
 result = StringVar()
 result.set("")
-Label(root, textvariable = result).grid(row = 1)
+Label(root, textvariable=result).grid(row=1)
 
+# the n-gram size options (choice of n-1) this allows you to choose how many words the dict is keyed on
 sizeOptions = [
-	1,
-	2,
-	3,
-	4,
-	5
+    1,
+    2,
+    3,
+    4,
+    5
 ]
 
+# set up the int variable that holds the size of n-1, and set its default value to the first option in sizeOptions
 size = IntVar()
 size.set(sizeOptions[0])
-size.trace("w", makeNewNGramList)
+# set a trace on this variable that calls make_new_n_gram_dict on any change
+size.trace("w", make_new_n_gram_dict)
 
+# the choice of domain TODO: make this scan the directory for files instead of being hard-coded
 fileNameOptions = [
-	"sampleText.txt",
-	"sampleText2.txt"
+    "sampleText.txt",
+    "sampleText2.txt"
 ]
 
+# set up the variable that holds the domain file, and set its default value to the first option in fileNameOptions
 fileName = StringVar()
 fileName.set(fileNameOptions[0])
-fileName.trace("w", makeNewNGramList)
 
-makeNewNGramList()
+# set a trace on this variable that calls make_new_n_gram_dict on any change
+fileName.trace("w", make_new_n_gram_dict)
 
+# create a new n_gram_dict based on the default size and domain
+make_new_n_gram_dict()
+
+# create the menu that holds the size options
 sizeMenu = apply(OptionMenu, (root, size) + tuple(sizeOptions))
-sizeMenu.grid(row = 2, column = 0)
+sizeMenu.grid(row=2, column=0)
 
-fileMenu = apply (OptionMenu, (root, fileName) + tuple(fileNameOptions))
-fileMenu.grid(row = 2, column = 1)
+# create the menu that holds the domain options
+fileMenu = apply(OptionMenu, (root, fileName) + tuple(fileNameOptions))
+fileMenu.grid(row=2, column=1)
 
-#print getBestNMatches(nGram, 6, "to", "the")
-
+# start the UI
 root.mainloop()
