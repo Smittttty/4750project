@@ -123,7 +123,8 @@ def convert_to_readable_format(file_name_options):
     # set up the output list
     out = []
     for option in sorted(file_name_options)[::5]:
-        out.append(option[:-5])
+        if option[-3:] == ".ng":
+            out.append(option[:-5])
 
     return out
 
