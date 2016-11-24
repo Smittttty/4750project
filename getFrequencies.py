@@ -9,7 +9,7 @@ from Tkinter import Label
 from Tkinter import OptionMenu
 from Tkinter import StringVar
 from Tkinter import Tk
-
+from Tkinter import RIGHT
 
 # noinspection PyUnusedLocal
 def load_n_gram_dict(*args):
@@ -146,7 +146,7 @@ enteredText.set("")
 enteredText.trace("w", match_entry)
 
 # set up the entry box for the user to enter text (using the enteredText string variable)
-matchThis = Entry(root, textvariable=enteredText)
+matchThis = Entry(root, textvariable=enteredText, justify=RIGHT)
 matchThis.grid(row=0, column=1)
 
 # set up the result string variable and the label that holds it
