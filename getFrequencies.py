@@ -20,7 +20,8 @@ def load_n_gram_dict(*args):
     """
     # convert the choices into the proper path and load the nGram associated with it
     global nGram
-    n_gram_path = "text_sources/" + fileName.get() + "_{0}.ng".format(size.get() + 1)
+    n_gram_file_name = fileName.get() + "_{0}.ng".format(size.get() + 1)
+    n_gram_path = os.path.join("text_sources", n_gram_file_name)
     nGram = cPickle.load(open(n_gram_path, "rb"))
 
 
@@ -173,7 +174,7 @@ size.set(sizeOptions[0])
 size.trace("w", load_n_gram_dict)
 
 # directory which contain texts
-textDirectory = "text_sources/"
+textDirectory = "text_sources"
 
 # get files in directory for options
 fileNameOptions = os.listdir(textDirectory)
